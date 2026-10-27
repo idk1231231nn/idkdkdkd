@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brazino - Un tablero para personas que apuestan</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Instrument Serif & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        bgCream: '#FDFCF7',
+                        darkGreen: '#233731',
+                        darkGreenHover: '#182723',
+                        accentRed: '#C25E4E',
+                        textDark: '#1C1F1E',
+                        textMuted: '#6B706D',
+                        cardBg: '#FFFFFF',
+                        tagBorder: '#E8E5DC'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFCF7;
+            color: #1C1F1E;
+        }
+
+        .font-serif-title {
+            font-family: 'Instrument Serif', Georgia, serif;
+        }
+
+        .card-hover {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 32px -12px rgba(0, 0, 0, 0.08);
+        }
+
+        /* Custom scrollbar for tags */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-bgCream text-textDark flex flex-col justify-between selection:bg-darkGreen selection:text-white">
+
+    <!-- DESKTOP TOP HEADER -->
+    <header class="sticky top-0 z-40 bg-bgCream/90 backdrop-blur-md border-b border-tagBorder/80">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 h-20 flex items-center justify-between">
+            
+            <!-- Left: Brand Logo & Main Nav -->
+            <div class="flex items-center space-x-10">
+                <a href="#" onclick="resetAllFilters(); return false;" class="font-serif-title text-4xl font-medium tracking-tight text-textDark select-none hover:opacity-90 transition-opacity">
+                    Brazino
+                </a>
+                
+                <!-- Desktop Navigation Tabs -->
+                <nav class="hidden md:flex items-center space-x-3 text-sm font-medium">
+                    <button id="nav-tablero" onclick="setActiveNav('tablero')" class="bg-darkGreen text-white px-5 py-2.5 rounded-full shadow-sm hover:bg-darkGreenHover transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-table-cells-large text-xs"></i>
+                        <span>Tablero</span>
+                    </button>
+                    <button id="nav-guardados" onclick="setActiveNav('guardados')" class="text-textMuted hover:text-textDark px-4 py-2.5 rounded-full hover:bg-black/5 flex items-center gap-2 transition-all">
+                        <i class="fa-regular fa-bookmark text-xs"></i>
+                        <span>Guardados</span>
+                        <span id="saved-badge-counter" class="bg-darkGreen/10 text-darkGreen text-xs px-2 py-0.5 rounded-full font-semibold">0</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Right: Search Bar & Actions -->
+            <div class="flex items-center space-x-4">
+                <!-- Interactive Search Bar -->
+                <div class="relative flex items-center bg-white border border-tagBorder rounded-full px-4 py-2.5 w-64 lg:w-80 shadow-sm focus-within:border-darkGreen focus-within:ring-1 focus-within:ring-darkGreen transition-all">
+                    <i class="fa-solid fa-magnifying-glass text-textMuted text-sm mr-3"></i>
+                    <input id="search-input" type="text" oninput="handleSearch(this.value)" placeholder="Buscar: ansiedad, recaída, dinero..." class="bg-transparent text-xs sm:text-sm text-textDark placeholder-textMuted w-full focus:outline-none">
+                    <button id="clear-search-btn" onclick="clearSearch()" class="hidden text-textMuted hover:text-textDark text-xs ml-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Profile Badge -->
+                <div class="w-10 h-10 rounded-full bg-darkGreen/10 border border-darkGreen/20 flex items-center justify-center text-darkGreen font-semibold text-sm">
+                    BZ
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-6 lg:px-12 pt-10 pb-20 w-full space-y-10">
+
+        <!-- HERO SECTION -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end border-b border-tagBorder/80 pb-10">
+            <div class="lg:col-span-8 space-y-4">
+                <p class="text-xs sm:text-sm font-semibold tracking-widest text-accentRed uppercase">
+                    UN TABLERO PARA PERSONAS QUE APUESTAN
+                </p>
+
+                <h1 class="font-serif-title text-5xl sm:text-6xl lg:text-7xl leading-[1.05] text-textDark">
+                    Soltar la apuesta.<br>
+                    <span class="italic font-normal text-textMuted/90">Sin juicio, sin prisa.</span>
+                </h1>
+            </div>
+
+            <div class="lg:col-span-4 space-y-5">
+                <p class="text-base text-textMuted leading-relaxed font-normal">
+                    Tarjetas para entender lo que te pasa, atravesar el impulso y volver a algo más tranquilo. Guarda las que te sirvan y vuelve a ellas cuando lo necesites.
+                </p>
+
+                <div class="flex items-center gap-3 pt-1 text-xs text-textMuted">
+                    <span class="inline-flex items-center gap-1.5"><i class="fa-solid fa-circle text-[8px] text-emerald-600"></i> Filtros activos</span>
+                    <span>•</span>
+                    <span id="active-view-indicator" class="font-medium text-textDark">Vista: Todo</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- FILTER CATEGORIES -->
+        <section class="space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                
+                <!-- Category Pills -->
+                <div id="category-pills" class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+                    <button onclick="setCategory('Todo')" data-category="Todo" class="category-btn bg-darkGreen text-white text-sm font-medium px-5 py-2.5 rounded-full shrink-0 shadow-sm transition-all">
+                        Todo
+                    </button>
+                    <button onclick="setCategory('Apuestas')" data-category="Apuestas" class="category-btn bg-white border border-tagBorder text-textDark text-sm font-medium px-5 py-2.5 rounded-full shrink-0 hover:border-darkGreen/50 transition-all">
+                        Apuestas
+                    </button>
+                    <button onclick="setCategory('Salud mental')" data-category="Salud mental" class="category-btn bg-white border border-tagBorder text-textDark text-sm font-medium px-5 py-2.5 rounded-full shrink-0 hover:border-darkGreen/50 transition-all">
+                        Salud mental
+                    </button>
+                    <button onclick="setCategory('Ejercicios')" data-category="Ejercicios" class="category-btn bg-white border border-tagBorder text-textDark text-sm font-medium px-5 py-2.5 rounded-full shrink-0 hover:border-darkGreen/50 transition-all">
+                        Ejercicios
+                    </button>
+                    <button onclick="setCategory('Dinero')" data-category="Dinero" class="category-btn bg-white border border-tagBorder text-textDark text-sm font-medium px-5 py-2.5 rounded-full shrink-0 hover:border-darkGreen/50 transition-all">
+                        Dinero
+                    </button>
+                </div>
+
+                <!-- Results Counter -->
+                <div class="text-xs text-textMuted font-medium flex items-center gap-2 shrink-0">
+                    <span id="cards-count-label">Mostrando 6 tarjetas</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- CARDS GRID -->
+        <section id="cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Cards rendered dynamically via JS -->
+        </section>
+
+        <!-- EMPTY STATE MESSAGE (hidden by default) -->
+        <div id="empty-state" class="hidden py-16 text-center space-y-4">
+            <div class="w-16 h-16 rounded-full bg-tagBorder/40 text-textMuted flex items-center justify-center mx-auto text-2xl">
+                <i class="fa-regular fa-folder-open"></i>
+            </div>
+            <h3 class="font-serif-title text-3xl text-textDark">No se encontraron tarjetas</h3>
+            <p class="text-sm text-textMuted max-w-md mx-auto">Prueba cambiando los términos de búsqueda o seleccionando otra categoría en la parte superior.</p>
+            <button onclick="resetAllFilters()" class="bg-darkGreen text-white text-xs font-medium px-5 py-2.5 rounded-full hover:bg-darkGreenHover transition-colors">
+                Restablecer todos los filtros
+            </button>
+        </div>
+    </main>
+
+    <!-- DESKTOP FOOTER -->
+    <footer class="border-t border-tagBorder/80 bg-white/60 backdrop-blur-sm py-10">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-textMuted">
+            <div class="flex items-center space-x-3">
+                <span class="font-serif-title text-2xl text-textDark font-medium">Brazino</span>
+                <span>© 2026</span>
+                <span>•</span>
+                <span>Un espacio seguro para la reflexión.</span>
+            </div>
+            <div class="flex items-center space-x-6 text-xs font-medium">
+                <button onclick="setCategory('Todo')" class="hover:text-textDark transition-colors">Ver todas las guías</button>
+                <button onclick="setActiveNav('guardados')" class="hover:text-textDark transition-colors">Mis guardados</button>
+                <button onclick="redirectToYouTube()" class="hover:text-textDark transition-colors">Líneas de ayuda <i class="fa-solid fa-arrow-up-right-from-square text-[10px] ml-0.5"></i></button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- FLOATING BASE 44 BADGE -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <div onclick="redirectToYouTube()" class="bg-black text-white px-4 py-2.5 rounded-xl flex items-center space-x-3 text-xs font-semibold shadow-2xl cursor-pointer hover:bg-neutral-900 border border-white/10 transition-all hover:scale-105">
+            <div class="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center">
+                <div class="w-2.5 h-1 bg-white rounded-full"></div>
+            </div>
+            <span>Edit with <span class="font-bold">Base 44</span></span>
+            <span class="text-gray-400 hover:text-white ml-1"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></span>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        const YOUTUBE_URL = "https://www.youtube.com/watch?v=24aYJRcCaRU";
+
+        // Card Dataset
+        const cardsData = [
+            {
+                id: 1,
+                category: "Apuestas",
+                badge: "APUESTAS · GUÍA",
+                title: "El ciclo de la apuesta",
+                excerpt: "Por qué cuesta tanto parar justo después de la pérdida más grande y qué mecanismos cerebrales impulsan la persecución.",
+                readTime: "5 min de lectura",
+                image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=800&auto=format&fit=crop"
+            },
+            {
+                id: 2,
+                category: "Salud mental",
+                badge: "SALUD MENTAL · MANEJO DE ANSIEDAD",
+                title: "Manejo de la ansiedad y la culpa",
+                excerpt: "Técnicas de regulación emocional cuando sientes el impulso incontrolable o el peso de las decisiones recientes.",
+                readTime: "4 min de lectura",
+                image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=800&auto=format&fit=crop"
+            },
+            {
+                id: 3,
+                category: "Ejercicios",
+                badge: "EJERCICIOS · HÁBITOS Y RUTINAS",
+                title: "Hábitos y rutinas diarias",
+                excerpt: "Pautas de pausa estratégica y sustitución de conductas en momentos críticos del día a día.",
+                readTime: "3 min de lectura",
+                image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800&auto=format&fit=crop"
+            },
+            {
+                id: 4,
+                category: "Dinero",
+                badge: "DINERO · FINANZAS PERSONALES",
+                title: "Finanzas personales y control de pérdidas",
+                excerpt: "Pasos prácticos para reorganizar presupuestos, bloquear cuentas y frenar el impacto financiero.",
+                readTime: "6 min de lectura",
+                image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=800&auto=format&fit=crop"
+            },
+            {
+                id: 5,
+                category: "Salud mental",
+                badge: "SALUD MENTAL · TESTIMONIOS",
+                title: "Hablar con la familia sin miedo",
+                excerpt: "Guía paso a paso para comunicar la situación a tus personas de confianza y construir una red de apoyo firme.",
+                readTime: "7 min de lectura",
+                image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=800&auto=format&fit=crop"
+            },
+            {
+                id: 6,
+                category: "Apuestas",
+                badge: "APUESTAS · ESTRATEGIA",
+                title: "Identificar disparadores de juego",
+                excerpt: "Aprende a mapear los detonantes psicológicos, lugares y horarios de mayor riesgo para anticiparte al impulso.",
+                readTime: "5 min de lectura",
+                image: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?q=80&w=800&auto=format&fit=crop"
+            }
+        ];
+
+        // State Management
+        let currentNav = 'tablero'; // 'tablero' | 'guardados'
+        let currentCategory = 'Todo';
+        let searchQuery = '';
+        let savedCardIds = new Set();
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCards();
+            updateSavedBadge();
+        });
+
+        // YouTube Redirection Handler
+        function redirectToYouTube() {
+            window.open(YOUTUBE_URL, '_blank');
+        }
+
+        // Toggle Saved Cards
+        function toggleBookmark(cardId, event) {
+            if (event) event.stopPropagation();
+            
+            if (savedCardIds.has(cardId)) {
+                savedCardIds.delete(cardId);
+            } else {
+                savedCardIds.add(cardId);
+            }
+            
+            updateSavedBadge();
+            renderCards();
+        }
+
+        // Update Badge Counter in Header
+        function updateSavedBadge() {
+            const badge = document.getElementById('saved-badge-counter');
+            badge.textContent = savedCardIds.size;
+        }
+
+        // Navigation Tabs Handling ('Tablero' vs 'Guardados')
+        function setActiveNav(nav) {
+            currentNav = nav;
+            const btnTablero = document.getElementById('nav-tablero');
+            const btnGuardados = document.getElementById('nav-guardados');
+            const activeIndicator = document.getElementById('active-view-indicator');
+
+            if (nav === 'tablero') {
+                btnTablero.className = "bg-darkGreen text-white px-5 py-2.5 rounded-full shadow-sm hover:bg-darkGreenHover transition-all flex items-center gap-2";
+                btnGuardados.className = "text-textMuted hover:text-textDark px-4 py-2.5 rounded-full hover:bg-black/5 flex items-center gap-2 transition-all";
+                activeIndicator.textContent = `Vista: Tablero (${currentCategory})`;
+            } else {
+                btnGuardados.className = "bg-darkGreen text-white px-5 py-2.5 rounded-full shadow-sm hover:bg-darkGreenHover transition-all flex items-center gap-2";
+                btnTablero.className = "text-textMuted hover:text-textDark px-4 py-2.5 rounded-full hover:bg-black/5 flex items-center gap-2 transition-all";
+                activeIndicator.textContent = "Vista: Tarjetas Guardadas";
+            }
+
+            renderCards();
+        }
+
+        // Category Filter Handling
+        function setCategory(category) {
+            currentCategory = category;
+            
+            // Update UI for Category Pills
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('data-category') === category) {
+                    btn.className = "category-btn bg-darkGreen text-white text-sm font-medium px-5 py-2.5 rounded-full shrink-0 shadow-sm transition-all";
+                } else {
+                    btn.className = "category-btn bg-white border border-tagBorder text-textDark text-sm font-medium px-5 py-2.5 rounded-full shrink-0 hover:border-darkGreen/50 transition-all";
+                }
+            });
+
+            if (currentNav === 'tablero') {
+                document.getElementById('active-view-indicator').textContent = `Vista: ${category}`;
+            }
+
+            renderCards();
+        }
+
+        // Search Input Handling
+        function handleSearch(query) {
+            searchQuery = query.toLowerCase().trim();
+            const clearBtn = document.getElementById('clear-search-btn');
+            if (searchQuery.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            renderCards();
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('search-input');
+            input.value = '';
+            handleSearch('');
+        }
+
+        function resetAllFilters() {
+            clearSearch();
+            setCategory('Todo');
+            setActiveNav('tablero');
+        }
+
+        // Filter and Render Cards
+        function renderCards() {
+            const grid = document.getElementById('cards-grid');
+            const emptyState = document.getElementById('empty-state');
+            const countLabel = document.getElementById('cards-count-label');
+
+            let filtered = cardsData.filter(card => {
+                // Nav Guardados Filter
+                if (currentNav === 'guardados' && !savedCardIds.has(card.id)) {
+                    return false;
+                }
+
+                // Category Filter
+                if (currentCategory !== 'Todo' && card.category !== currentCategory) {
+                    return false;
+                }
+
+                // Search Query Filter
+                if (searchQuery) {
+                    const matchTitle = card.title.toLowerCase().includes(searchQuery);
+                    const matchExcerpt = card.excerpt.toLowerCase().includes(searchQuery);
+                    const matchCategory = card.category.toLowerCase().includes(searchQuery);
+                    return matchTitle || matchExcerpt || matchCategory;
+                }
+
+                return true;
+            });
+
+            countLabel.textContent = `Mostrando ${filtered.length} ${filtered.length === 1 ? 'tarjeta' : 'tarjetas'}`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            grid.innerHTML = filtered.map(card => {
+                const isSaved = savedCardIds.has(card.id);
+                return `
+                    <article class="bg-cardBg rounded-2xl overflow-hidden border border-tagBorder/80 shadow-sm card-hover flex flex-col justify-between">
+                        <div>
+                            <!-- Card Image Header -->
+                            <div class="relative aspect-[16/10] bg-gray-100 overflow-hidden">
+                                <img src="${card.image}" alt="${card.title}" class="w-full h-full object-cover">
+                                
+                                <!-- Play Button (REDIRECTS TO YOUTUBE) -->
+                                <button onclick="redirectToYouTube()" title="Ver guía en YouTube" class="absolute inset-0 m-auto w-12 h-12 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center text-darkGreen shadow-lg hover:scale-110 transition-transform">
+                                    <i class="fa-solid fa-play text-sm pl-0.5"></i>
+                                </button>
+
+                                <!-- Bookmark Button (INTERACTIVE, TOGGLES STATE) -->
+                                <button onclick="toggleBookmark(${card.id}, event)" title="${isSaved ? 'Quitar de guardados' : 'Guardar tarjeta'}" class="absolute top-3 right-3 w-9 h-9 rounded-full ${isSaved ? 'bg-darkGreen text-white' : 'bg-white/90 text-textDark hover:bg-white'} backdrop-blur-md flex items-center justify-center shadow-sm transition-transform hover:scale-110">
+                                    <i class="${isSaved ? 'fa-solid' : 'fa-regular'} fa-bookmark text-sm"></i>
+                                </button>
+                            </div>
+
+                            <!-- Card Body -->
+                            <div class="p-6 space-y-3">
+                                <div class="flex items-center space-x-2 text-[11px] font-semibold tracking-wider text-accentRed uppercase">
+                                    <span>${card.badge}</span>
+                                </div>
+
+                                <!-- Title (REDIRECTS TO YOUTUBE) -->
+                                <h3 onclick="redirectToYouTube()" class="font-serif-title text-3xl text-textDark leading-snug cursor-pointer hover:text-darkGreen transition-colors">
+                                    ${card.title}
+                                </h3>
+
+                                <p class="text-sm text-textMuted leading-relaxed">
+                                    ${card.excerpt}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Card Footer -->
+                        <div class="p-6 pt-0 flex items-center justify-between text-xs text-textMuted border-t border-gray-100 mt-4">
+                            <div class="flex items-center space-x-1.5">
+                                <i class="fa-regular fa-clock text-xs"></i>
+                                <span>${card.readTime}</span>
+                            </div>
+
+                            <!-- Action Button (REDIRECTS TO YOUTUBE) -->
+                            <button onclick="redirectToYouTube()" class="font-medium text-darkGreen hover:underline flex items-center gap-1">
+                                <span>Ver guía</span>
+                                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+    </script>
+</body>
+</html>
